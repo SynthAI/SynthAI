@@ -1,0 +1,400 @@
+#######################################################################
+# Maintained by ceph cookbook
+# Please do not modify by hand. Changes will get overridden.
+# Author: Hans Chris Jones
+#######################################################################
+
+[global]
+  # This value must be set before the mon.rb recipe is called. Do this in your own recipe where you set your owner
+  # variables. For an example, see ceph-chef/recipes/ceph-mon.rb
+  fsid = <%= @fsid_secret %>
+  <% if !node['ceph']['keyring']['global'].empty? %>
+  keyring = <%= node['ceph']['keyring']['global'] %>
+  <% end -%>
+  auth cluster required = cephx
+  auth service required = cephx
+  auth client required = cephx
+  # Example of default cephx settings
+  # cephx require signatures = true
+  # cephx cluster require signatures = true
+  # cephx service require signatures = false
+  # cephx sign messages = true
+  # Note: mon host (required) and mon initial members (optional) should be in global section in addition
+  # to the cluster and public network options since they are all critical to every node.
+  # List of all of the monitor nodes in the given cluster
+  <% #Check ALL of the important vars before modifying them just in case their values are empty or nil. -%>
+  <% if !@mon_addresses.nil? && !@mon_addresses.empty? -%>
+  mon host = <%= @mon_addresses.sort.join(', ') %>
+  <% end -%>
+  # Suppress warning of too many pgs
+  mon pg warn max per osd = 0
+  max open files = 131072
+  <% if !node['ceph']['network']['cluster']['cidr'].nil? && !node['ceph']['network']['cluster']['cidr'].empty? %>
+  cluster network = <%= @node['ceph']['network']['cluster']['cidr'].join(',') %>
+  <% end -%>
+  <% if !node['ceph']['network']['public']['cidr'].nil? && !node['ceph']['network']['public']['cidr'].empty? %>
+  public network = <%= @node['ceph']['network']['public']['cidr'].join(',') %>
+  <% end -%>
+<% if !node['ceph']['config']['global'].nil? -%>
+  # This is very flexible section. You can add more options OR override options from above simply by
+  # specifying the values in your wrapper cookbook or your "chef-repo". If you override values then
+  # you may see a warning in the logs letting you know you have overridden.
+  <% node['ceph']['config']['global'].sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+<% end -%>
+<% if !node['ceph']['config']['rebalance'].nil? and !node['ceph']['config']['rebalance'].empty? %>
+  paxos propose interval = 60
+<% end %>
+<% if node['ceph']['experimental']['enable'] %>
+  enable experimental unrecoverable data corrupting features: <%= @node['ceph']['experimental']['features'].join(',') %>
+<% end %>
+
+<% if @is_osd -%>
+[osd]
+  <% if !node['ceph']['keyring']['osd'].empty? %>
+  keyring = <%= node['ceph']['keyring']['osd'] %>
+  <% end -%>
+  <% # If the 'config''osd' key/value pairs are nil then use these values as defaults other wise be SURE to have at least these defined in your custom key/value OSD array -%>
+  <% if node['ceph']['config']['osd'].nil? -%>
+  # Set the default values here if no values provided to override them
+  # Need xattr use omap = true for RGW
+  osd map dedup = true
+  osd max write size = 256
+  osd disk threads = 1
+  osd client message size cap = 1073741824
+  filestore xattr use omap = true
+  filestore merge threshold = 40
+  filestore split multiple = 8
+  filestore op threads = 32
+  filestore min sync interval = 10
+  filestore max sync interval = 15
+  filestore queue max ops = 2500
+  filestore queue max bytes = 10485760
+  filestore queue committing max ops = 5000
+  filestore queue committing max bytes = 10485760000
+  osd journal size = <%= node['ceph']['osd']['journal']['size'] %>
+  journal max write bytes = 1073714824
+  journal max write entries = 10000
+  journal queue max ops = 50000
+  journal queue max bytes = 10485760000
+  journal block align = true
+  journal dio = true
+  journal aio = true
+  osd mkfs type = xfs
+  #osd mount options xfs = rw,noexec,nodev,noatime,nodiratime,nobarrier
+  osd mount options xfs = rw,noatime,inode64,logbufs=8,logbsize=256k,allocsize=4M
+  # Example: osd mkfs options xfs = -f -i size=2048
+  # Example: osd mount options xfs = noexec,nodev,noatime,nodiratime,barrier=0,discard
+  # IMPORTANT: If you modify the crush map with the automation then uncomment the line below (osd crush update ...)
+  # otherwise the crush map will not get created correctly and the PGs will stay in inactive/unclean state.
+  # In a production system it's good to set this value to 'false' and modify the crush map to fit your environment.
+  <% if node['ceph']['osd']['crush']['update'] %>
+  osd crush update on start = <%= node['ceph']['osd']['crush']['update_on_start'] %>
+  <% end %>
+  #You can change the replica count via config or cli
+  osd pool default size = <%= node['ceph']['osd']['size']['max'] %>
+  osd pool default min size = <%= node['ceph']['osd']['size']['min'] %>
+  osd pool default pg num = <%= node['ceph']['pools']['pgs']['num'] %>
+  osd pool default pgp num = <%= node['ceph']['pools']['pgs']['num'] %>
+  # Default is 0 for default crush rule.
+  # Example: osd pool default crush rule = <%= node['ceph']['pools']['crush']['rule'] %>
+  # Host 1, Rack 3 - Default is 1. This can have an impact on the crushmap if not the default.
+  osd crush chooseleaf type = <%= node['ceph']['osd']['crush']['chooseleaf_type'] %>
+  # Note: All of these values can be overridden in you wrapper cookbook or "chef-repo" project
+  osd recovery op priority = <%= node['ceph']['tuning']['osd_recovery_op_priority'] %>
+  osd recovery max active = <%= node['ceph']['tuning']['osd_recovery_max_active'] %>
+  osd max backfills = <%= node['ceph']['tuning']['osd_max_backfills'] %>
+  osd op threads = <%= node['ceph']['tuning']['osd_op_threads'] %>
+  osd disk thread ioprio priority = <%= node['ceph']['system']['scheduler']['device']['ceph']['priority'] %>
+  osd disk thread ioprio class = <%= node['ceph']['system']['scheduler']['device']['ceph']['class'] %>
+  <% end -%>
+  <% if !node['ceph']['config']['rebalance'].nil? and !node['ceph']['config']['rebalance'].empty? %>
+  # These two max active and max single work together
+  osd recovery max active = 1
+  osd recovery max single start = 1
+  osd recovery op priority = 1
+  osd recovery max chunk = 1048576
+  osd recovery threads = 1
+  osd max backfills  = 2
+  osd backfill scan min = 8
+  osd backfill scan max = 64
+  osd max scrubs = 1
+  osd scrub sleep = .1
+  osd scrub chunk min = 1
+  osd scrub chunk max = 5
+  osd deep scrub stride = 1048576
+  osd scrub begin hour = 23
+  osd scrub end hour = 6
+  osd op threads = 8
+  osd recovery op priority = 1
+  osd mon report interval min = 30
+  <% end %>
+  <% if !node['ceph']['config']['osd'].nil? -%>
+  <% node['ceph']['config']['osd'].sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+  <% end -%>
+<% end -%>
+
+<% if @is_mon -%>
+[mon]
+  <% if !node['ceph']['keyring']['mon'].empty? %>
+  keyring = <%= node['ceph']['keyring']['mon'] %>
+  <% end -%>
+  # Change the allow pool delete to false once you have everything where you want it. It keeps someone from
+  # accidently deleting a pool!
+  mon_allow_pool_delete = true
+  <% if !node['ceph']['config']['mon'].nil? -%>
+  <% node['ceph']['config']['mon'].sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+  <% end -%>
+<% end -%>
+
+<% if !node['ceph']['config']['mds'].nil? -%>
+# NOTE: Only needed for CephFS
+[mds]
+  <% if !node['ceph']['keyring']['mds'].empty? %>
+  keyring = <%= node['ceph']['keyring']['mds'] %>
+  <% end -%>
+  mds cache size = 250000
+  <% node['ceph']['config']['mds'].sort.each do |key, value| -%>
+  <%= key %> = <%= value %>
+  <% end -%>
+<% end -%>
+
+<% if @is_rbd || @is_admin || @is_rgw || @is_rest_api -%>
+# Any items in the 'client' section will apply to all sub-client sections unless overridden in the sub-client section.
+[client]
+  <% if @is_rbd -%>
+  rbd cache = true
+  rbd cache writethrough until flush = true
+  rbd concurrent management ops = 10
+  rbd cache size = 67108864
+  rbd cache max dirty = 50331648
+  rbd cache target dirty = 33554432
+  rbd cache max dirty age = 2
+  rbd default format = 2
+  log file = /var/log/qemu/qemu-guest-$pid.log
+  # NOTE: If using RBD and OpenStack then you can add two additional sub-client for Cinder and Glance below this one.
+  <% end -%>
+  # admin socket must be writable by QEMU and allowed by SELinux or AppArmor
+  # admin socket = /var/run/ceph/$cluster-$type.$id.$pid.$cctid.asok
+  # admin socket = /var/run/ceph/$cluster-$type.$id.$pid.asok
+  # The `ceph daemon` is not as flexible as `ceph --admin-daemon` so naming admin socket is important.
+  admin socket = /var/run/ceph/$cluster-$type.$id.asok
+<% end -%>
+
+<% if @is_admin || @is_rgw -%>
+# NOTE: You can null out the 'admin socket' below if you wish. If present, when running ceph -s without being 'sudo'
+# you will receive an 'unable to bind error msg'.
+[client.admin]
+  <% if !node['ceph']['keyring']['adm'].empty? %>
+  keyring = <%= node['ceph']['keyring']['adm'] %>
+  <% end -%>
+  admin socket =
+  log file =
+<% end -%>
+
+<% if @is_rgw -%>
+<% if @is_federated -%>
+<% node['ceph']['pools']['radosgw']['federated_zone_instances'].each do |inst| %>
+[client.radosgw.<%= inst['region'] %>-<%= inst['name'] %>]
+  host = <%= node['hostname'] %>
+  rgw opstate ratelimit = 0
+  <% if node['ceph']['pools']['radosgw']['federated_enable_regions_zones'] %>
+   <% if node['ceph']['pools']['radosgw']['federated_multisite_replication'] %>
+  rgw region = <%= inst['region'] %>
+   <% else %>
+  rgw region = <%= inst['region'] %>-<%= inst['name'] %>
+   <% end %>
+  <% if node['ceph']['version'] == 'hammer' %>
+   <% if node['ceph']['pools']['radosgw']['federated_multisite_replication'] %>
+  rgw region root pool = .<%= inst['region'] %>.rgw.root
+   <% else %>
+  rgw region root pool = .<%= inst['region'] %>-<%= inst['name'] %>.rgw.root
+   <% end %>
+  <% else %>
+   <% if node['ceph']['pools']['radosgw']['federated_multisite_replication'] %>
+  rgw zonegroup root pool = .<%= inst['region'] %>.rgw.root
+   <% else %>
+  rgw zonegroup root pool = .<%= inst['region'] %>-<%= inst['name'] %>.rgw.root
+   <% end %>
+  <% end %>
+  rgw zone = <%= inst['region'] %>-<%= inst['name'] %>
+  rgw zone root pool = .<%= inst['region'] %>-<%= inst['name'] %>.rgw.root
+  <% end %>
+  <% if !node['ceph']['keyring']['rgw'].empty? %>
+  <% if node['ceph']['pools']['radosgw']['federated_multisite_replication'] %>
+  keyring = <%= node['ceph']['keyring']['rgw'] %>.keyring
+  <% else %>
+  keyring = <%= node['ceph']['keyring']['rgw'] %>.<%= inst['region'] %>-<%= inst['name'] %>.keyring
+  <% end %>
+  <% end -%>
+  admin socket = /var/run/ceph/$cluster-$type.radosgw.<%= inst['region'] %>-<%= inst['name'] %>.asok
+  <% if inst['rgw_thread_pool'] %>
+  rgw thread pool size = <%= inst['rgw_thread_pool'] %>
+  <% else %>
+  rgw thread pool size = <%= node['ceph']['radosgw']['rgw_thread_pool'] %>
+  <% end %>
+  <% if inst['handles'] %>
+  rgw num rados handles = <%= inst['handles'] %>
+  <% else %>
+  rgw num rados handles = <%= node['ceph']['radosgw']['rgw_num_rados_handles'] %>
+  <% end %>
+  rgw enable ops log = <%= node['ceph']['radosgw']['logs']['ops']['enable'] %>
+  rgw enable usage log = <%= node['ceph']['radosgw']['logs']['usage']['enable'] %>
+  # For GC Max Objects: Use Prime numbers and larger ones if your cluster is large (i.e., 5003 or higher for a multi PB size)
+  rgw gc max objects = <%= node['ceph']['radosgw']['gc']['max_objects'] %>
+  rgw gc obj min wait = <%= node['ceph']['radosgw']['gc']['obj_min_wait'] %>
+  rgw gc processor max time = <%= node['ceph']['radosgw']['gc']['processor_max_time'] %>
+  rgw gc processor period = <%= node['ceph']['radosgw']['gc']['processor_period'] %>
+  pid file = /var/run/ceph/$name.<%= inst['region'] %>-<%= inst['name'] %>.pid
+  # Increased to 1 to log HTTP return codes - http://tracker.ceph.com/issues/12432
+  <% if node['ceph']['radosgw']['debug']['logs']['enable'] %>
+  <% if inst['threads'] %>
+  rgw frontends = civetweb port=<%= inst['port'] %> num_threads=<%= inst['threads'] %> error_log_file=<%= node['ceph']['radosgw']['civetweb_error_log_file'] %>.<%= inst['name'] %>.log access_log_file=<%= node['ceph']['radosgw']['civetweb_access_log_file'] %>.<%= inst['name'] %>.log
+  <% else %>
+  rgw frontends = civetweb port=<%= inst['port'] %> num_threads=<%= node['ceph']['radosgw']['civetweb_num_threads'] %> error_log_file=<%= node['ceph']['radosgw']['civetweb_error_log_file'] %>.<%= inst['name'] %>.log access_log_file=<%= node['ceph']['radosgw']['civetweb_access_log_file'] %>.<%= inst['name'] %>.log
+  <% end %>
+  log file = /var/log/radosgw/$cluster.client.radosgw.<%= inst['region'] %>-<%= inst['name'] %>.log
+  debug rgw = 1/5
+  <% else %>
+  <% if inst['threads'] %>
+  rgw frontends = civetweb port=<%= inst['port'] %> num_threads=<%= inst['threads'] %> error_log_file=<%= node['ceph']['radosgw']['civetweb_error_log_file'] %>.<%= inst['name'] %>.log
+  <% else %>
+  rgw frontends = civetweb port=<%= inst['port'] %> num_threads=<%= node['ceph']['radosgw']['civetweb_num_threads'] %> error_log_file=<%= node['ceph']['radosgw']['civetweb_error_log_file'] %>.<%= inst['name'] %>.log
+  <% end %>
+  debug default=0/0
+  debug lockdep=0/0
+  debug context=0/0
+  debug crush=0/0
+  debug buffer=0/0
+  debug timer=0/0
+  debug filer=0/0
+  debug objecter=0/0
+  debug rados=0/0
+  debug journaler=0/0
+  debug objectcacher=0/0
+  debug client=0/0
+  debug optracker=0/0
+  debug objclass=0/0
+  debug ms=0/0
+  debug tp=0/0
+  debug auth=0/0
+  debug finisher=0/0
+  debug heartbeatmap=0/0
+  debug perfcounter=0/0
+  debug rgw=0/0
+  debug asok=0/0
+  debug throttle=0/0
+  debug civetweb=0/0
+  <% end %>
+  rgw dns name = <%= inst['url'] %>
+  rgw resolve cname = True
+  <% if node['ceph']['radosgw']['keystone']['auth'] %>
+  rgw keystone url = <%= node['ceph']['radosgw']['keystone']['admin']['url'] %>:<%= node['ceph']['radosgw']['keystone']['admin']['port'] %>
+  rgw keystone admin token = <%= node['ceph']['radosgw']['keystone']['admin']['token'] %>
+  rgw keystone accepted roles = <%= node['ceph']['radosgw']['keystone']['accepted_roles'] %>
+  rgw keystone token cache size = <%= node['ceph']['radosgw']['keystone']['token_cache_size'] %>
+  rgw keystone revocation interval = <%= node['ceph']['radosgw']['keystone']['revocation_interval'] %>
+  rgw s3 auth use keystone = true
+  <% end %>
+  <% if !node['ceph']['config']['radosgw'].nil? -%>
+  <% node['ceph']['config']['radosgw'].sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+  <% end -%>
+
+<% end %>
+<% else %>
+[client.radosgw.gateway]
+  host = <%= node['hostname'] %>
+  rgw opstate ratelimit = 0
+  <% if !node['ceph']['keyring']['rgw'].empty? %>
+  keyring = <%= node['ceph']['keyring']['rgw'] %>.keyring
+  <% end -%>
+  admin socket = /var/run/ceph/$cluster-$type.radosgw.gateway.asok
+  rgw thread pool size = <%= node['ceph']['radosgw']['rgw_thread_pool'] %>
+  rgw num rados handles = <%= node['ceph']['radosgw']['rgw_num_rados_handles'] %>
+  rgw enable ops log = <%= node['ceph']['radosgw']['logs']['ops']['enable'] %>
+  rgw enable usage log = <%= node['ceph']['radosgw']['logs']['usage']['enable'] %>
+  # For GC Max Objects: Use Prime numbers and larger ones if your cluster is large (i.e., 5003 or higher for a multi PB size)
+  rgw gc max objects = <%= node['ceph']['radosgw']['gc']['max_objects'] %>
+  rgw gc obj min wait = <%= node['ceph']['radosgw']['gc']['obj_min_wait'] %>
+  rgw gc processor max time = <%= node['ceph']['radosgw']['gc']['processor_max_time'] %>
+  rgw gc processor period = <%= node['ceph']['radosgw']['gc']['processor_period'] %>
+  pid file = /var/run/ceph/$name.pid
+  # Increased to 1 to log HTTP return codes - http://tracker.ceph.com/issues/12432
+  <% if node['ceph']['radosgw']['debug']['logs']['enable'] %>
+  rgw frontends = civetweb port=<%= node['ceph']['radosgw']['port'] %> num_threads=<%= node['ceph']['radosgw']['civetweb_num_threads'] %> error_log_file=<%= node['ceph']['radosgw']['civetweb_error_log_file'] %>.log access_log_file=<%= node['ceph']['radosgw']['civetweb_access_log_file'] %>.log
+  log file = /var/log/radosgw/$cluster.client.radosgw.log
+  debug rgw = 1/5
+  <% else %>
+  rgw frontends = civetweb port=<%= node['ceph']['radosgw']['port'] %> num_threads=<%= node['ceph']['radosgw']['civetweb_num_threads'] %> error_log_file=<%= node['ceph']['radosgw']['civetweb_error_log_file'] %>.log
+  debug default=0/0
+  debug lockdep=0/0
+  debug context=0/0
+  debug crush=0/0
+  debug buffer=0/0
+  debug timer=0/0
+  debug filer=0/0
+  debug objecter=0/0
+  debug rados=0/0
+  debug journaler=0/0
+  debug objectcacher=0/0
+  debug client=0/0
+  debug optracker=0/0
+  debug objclass=0/0
+  debug ms=0/0
+  debug tp=0/0
+  debug auth=0/0
+  debug finisher=0/0
+  debug heartbeatmap=0/0
+  debug perfcounter=0/0
+  debug rgw=0/0
+  debug asok=0/0
+  debug throttle=0/0
+  debug civetweb=0/0
+  <% end %>
+  rgw dns name = <%= node['ceph']['radosgw']['default_url'] %>
+  rgw resolve cname = True
+  <% if node['ceph']['radosgw']['keystone']['auth'] %>
+  rgw keystone url = <%= node['ceph']['radosgw']['keystone']['admin']['url'] %>:<%= node['ceph']['radosgw']['keystone']['admin']['port'] %>
+  rgw keystone admin token = <%= node['ceph']['radosgw']['keystone']['admin']['token'] %>
+  rgw keystone accepted roles = <%= node['ceph']['radosgw']['keystone']['accepted_roles'] %>
+  rgw keystone token cache size = <%= node['ceph']['radosgw']['keystone']['token_cache_size'] %>
+  rgw keystone revocation interval = <%= node['ceph']['radosgw']['keystone']['revocation_interval'] %>
+  rgw s3 auth use keystone = true
+  <% end %>
+  <% if !node['ceph']['config']['radosgw'].nil? -%>
+  <% node['ceph']['config']['radosgw'].sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+  <% end -%>
+<% end -%>
+<% end -%>
+
+<% if @is_rest_api -%>
+[client.restapi]
+  public addr = <%= node['ceph']['restapi']['ip'] %>:<%= node['ceph']['restapi']['port'] %>
+  <% if !node['ceph']['keyring']['res'].empty? %>
+  keyring = <%= node['ceph']['keyring']['res'] %>.keyring
+  <% end -%>
+  admin socket = /var/run/ceph/$cluster-$type.restapi.asok
+  restapi base url = <%= node['ceph']['restapi']['base_url'] %>
+  log file = /var/log/ceph/$cluster.client.restapi.log
+<% if !node['ceph']['config']['restapi'].nil? -%>
+  <% node['ceph']['config']['restapi'].sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+<% end -%>
+<% end -%>
+
+<% node['ceph']['config-sections'].sort.each do |name, sect| %>
+[<%= name %>]
+  <% sect.sort.each do |k, v| %>
+  <%= k %> = <%= v %>
+  <% end %>
+<% end %>

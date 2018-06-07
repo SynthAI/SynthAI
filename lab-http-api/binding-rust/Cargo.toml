@@ -1,0 +1,9 @@
+[package]
+name = "lab"
+version = "0.1.0"
+authors = ["NivenT <nachenjang@gmail.com>"]
+
+[dependencies]
+rand = "0.3.14"
+serde_json = "0.8.0"
+hyper = "0.9.12"

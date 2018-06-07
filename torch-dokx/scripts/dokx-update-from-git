@@ -1,0 +1,26 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Check out a list of projects from git, and build docs for them in a central tree
+    -o,--output (string)                path to root of documentation tree
+    -r,--repl   (optional string)       path to install markdown for REPL
+    -b,--branch (default master)        branch to check out
+    -d,--description (optional string)  package description
+    -s,--section (optional string)      package section
+    -c,--config (optional string)       path to config file to override with
+    <inputs...> (string)                git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
+    --debug                             debug mode
+]]
+end
+
+local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.updateFromGit(args.inputs, args.branch, args.config, args.output, args.repl, args.description, args.section)
+end
+
+main(processArgs())

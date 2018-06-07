@@ -1,0 +1,21 @@
+---
+title: 'Reduced-Information Program Learning'
+summary: ''
+difficulty: 2 # out of 3
+---
+
+<p>A difficult machine learning task is that of program, or algorithm, learning.  Examples of simple algorithmic tasks are <a href="https://lab.synthai.com/envs/RepeatCopy-v0">RepeatCopy</a> and <a href="https://lab.synthai.com/envs/ReversedAddition-v0">ReversedAddition</a>. Theoretically, recurrent neural networks (RNNs) are Turing-complete (if they have large enough memory and enough timesteps between reading the input and emitting the output), which means that they can model any computable function. In practice, however, it has been difficult to <em>learn</em> algorithms that output the intended answer on every conceivable input (as opposed to outputting the correct answer on the training data distribution only).</p>
+
+<p> The <a href="http://www-personal.umich.edu/~reedscot/iclr_project.html">Neural Programmer-Interpreter</a> (NPI) is an example of a program-learning model which uses execution traces as its supervised signal. This is opposed to the notion of <em>program induction</em>, where programs must be inferred from input-output pairs. Using execution traces as a supervisory signal, the NPI learn to solve extremely hard problems and generalize to inputs of greater length.  However, most interesting problems do not have execution traces available: if we knew the detailed execution traces, we would probably know how to solve the problem as well. </p>
+
+<p>The challenge is thus to achieve similar results with <strong>partial</strong> execution traces. A partial execution trace provides a compact high level description of the way in which a particular instance was solved.  Given an input, a partial execution trace provides a <i>rough description</i> of how the solution was computed, without going into all the details.   Other weak supervision can provided -- such as the input-output pairs. 
+
+The challenge in this problem is to design a model that is actually capable of learning from partial execution traces, and to show that it can learn algorithmic tasks (such as bubble sort, quick sort, multiplication, various string operations, etc) quickly.  It is desirable to develop a model that can solve these problems using the least specific execution traces possible.  
+
+
+
+
+<hr />
+
+
+

@@ -1,0 +1,76 @@
+*.swp
+*.pyc
+*.py~
+.DS_Store
+*~
+.cache
+
+# Setuptools distribution and build folders.
+/dist/
+/build
+
+# Virtualenv
+/env
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+
+*.sublime-project
+*.sublime-workspace
+
+logs/
+
+tmp/
+
+.ipynb_checkpoints
+ghostdriver.log
+
+junk
+MUJOCO_LOG.txt
+mujoco-bundle
+
+
+rllab_mujoco
+
+tutorial/*.html
+
+# IDE files
+.eggs
+.tox
+.vscode/
+
+# PyCharm project files
+.idea
+
+# C++ binding
+binding-cpp/random_agent
+binding-cpp/lib/lab_binding.a
+binding-cpp/.obj/*
+
+# Qt Creator files for C++ binding
+binding-cpp/lab-binding-cpp.config
+binding-cpp/lab-binding-cpp.creator
+binding-cpp/lab-binding-cpp.creator.user
+binding-cpp/lab-binding-cpp.files
+binding-cpp/lab-binding-cpp.includes
+
+# JS Binding
+binding-js/dist
+binding-js/node_modules
+binding-js/src/typings
+
+#Rust binding
+binding-rust/Cargo.lock
+binding-rust/target
+
+# Haskell binding
+binding-hs/.stack-work/*
+binding-hs/*.tags
+
+# Clojure binding
+.nrepl-port
+
+#Swift binding
+binding-swift/*.xcuserstate
+binding-swift/ExampleAgent.playground/playground.xcworkspace/xcuserdata
+binding-swift/ExampleAgent.playground/xcuserdata

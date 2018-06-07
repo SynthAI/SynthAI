@@ -1,0 +1,75 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: autoscaler
+  namespace: system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: autoscaler
+        synthai/do-not-drain: "true"
+    spec:
+      containers:
+      - name: autoscaler
+        image: quay.io/synthai/kubernetes-ec2-autoscaler:azure
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: aws-access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: aws-secret-access-key
+        - name: SLACK_HOOK
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: slack-hook
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: slack-bot-token
+        - name: DATADOG_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: datadog-api-key
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: sentry-dsn
+        - name: PYKUBE_KUBERNETES_SERVICE_HOST
+          value: 10.100.0.1
+          # value: kubernetes.default
+        - name: DATADOG_TAGS
+          value: env:sci
+        - name: NAMESPACE
+          value: system.svc.sci.synthai.org
+        command:
+            - python
+            - main.py
+            - --azure-regions
+            - us-east,us-south-central
+            - --aws-regions
+            - us-west-2,us-east-1,us-west-1
+            - --cluster-name
+            - synthai-kubernetes
+            - -vvv
+            - --type-idle-threshold
+            - "0"
+            - --over-provision
+            - "1"
+            - --sleep
+            - "30"
+        imagePullPolicy: Always
+      restartPolicy: Always
+      dnsPolicy: Default  # Don't use cluster DNS.
+      nodeSelector:
+        aws/region: us-west-2

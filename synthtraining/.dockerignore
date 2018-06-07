@@ -1,0 +1,22 @@
+synthtraining .egg-info
+ascii_houses/*
+synthtraining /cpp-household/.generated*
+synthtraining /cpp-household/.build-debug*
+synthtraining /cpp-household/.build-release*
+synthtraining /cpp-household/bullet_local_install
+synthtraining /cpp-household/synthtraining .creator.user
+synthtraining /cpp-household/Makefile.dep
+synthtraining /robot-test-tool
+synthtraining /robot-test-tool_d
+*.pyc
+*.dylib
+*.so
+*.swp
+__pycache__
+.git
+**/*.pyc
+**/.git
+**/__pycache__
+**/*.o
+**/*.so
+**/*.dylib

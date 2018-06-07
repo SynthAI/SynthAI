@@ -1,0 +1,20 @@
+<launch>
+
+  <arg name="joy_device" default="/dev/ps3joy"/>
+
+  <node name="joy" pkg="joy" type="joy_node">
+    <param name="autorepeat_rate" value="1"/>
+    <param name="dev" value="$(arg joy_device)"/>
+  </node>
+
+  <node name="teleop" pkg="fetch_teleop" type="joystick_teleop" />
+
+  <node name="cmd_vel_mux" pkg="topic_tools" type="mux" respawn="true" args="base_controller/command /cmd_vel /teleop/cmd_vel">
+    <remap from="mux" to="cmd_vel_mux" />
+  </node>
+
+  <node name="controller_reset" pkg="fetch_bringup" type="controller_reset.py" />
+
+  <node name="tuck_arm" pkg="fetch_teleop" type="tuck_arm.py" args="--joystick" respawn="true" />
+
+</launch>

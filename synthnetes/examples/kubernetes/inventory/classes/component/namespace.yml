@@ -1,0 +1,10 @@
+parameters:
+  namespace: ${target_name}
+  synthnetes:
+    compile:
+    - output_path: pre-deploy
+      input_type: jsunset
+      output_type: yaml
+      input_paths:
+        - components/namespace/main.jsunset
+

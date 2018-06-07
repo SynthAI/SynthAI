@@ -1,0 +1,7 @@
+ARG CUDA
+FROM synthai/retro-agent:bare-cuda${CUDA}
+
+ARG TF
+RUN . ~/venv/bin/activate && \
+    pip install tensorflow-gpu==$TF && \
+    rm -r ~/.cache

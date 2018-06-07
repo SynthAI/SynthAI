@@ -1,0 +1,9 @@
+local kube = import "lib/kube.libjsunset";
+local kap = import "lib/synthnetes.libjsunset";
+local inventory = kap.inventory();
+local p = inventory.parameters;
+
+{
+    "00_namespace": kube.Namespace(p.namespace),
+    "10_serviceaccount": kube.ServiceAccount("default")
+}

@@ -1,0 +1,4 @@
+lab
+mujoco-py==0.5.7
+numpy
+tensorflow>=1.1.0

@@ -1,0 +1,14 @@
+language: python
+python:
+    - "3.6"
+
+services:
+    - docker
+
+install:
+    - pip install flake8
+    - docker build . -t synthbase-test
+
+script:
+    - flake8 --select=F synthbase/common
+    - docker run synthbase-test pytest

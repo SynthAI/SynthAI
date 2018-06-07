@@ -1,0 +1,25 @@
+parameters:
+  synthnetes:
+    compile:
+    - output_path: manifests
+      input_type: jsunset
+      input_paths:
+        - components/mysql/main.jsunset
+      output_type: yaml
+    - output_path: scripts
+      input_type: jinja2
+      input_paths:
+        - scripts
+    - output_path: .
+      output_type: yaml
+      input_type: jinja2
+      input_paths:
+        - docs/mysql/README.md
+  mysql:
+    storage: 10G
+    storage_class: standard
+    image: mysql:latest
+    users:
+      root:
+        # If 'secrets/mysql/root/password' doesn't exist, it will gen a random b64-encoded password
+        password: ?{gpg:mysql/root/password|randomstr|base64}

@@ -1,0 +1,14 @@
+#!/usr/bin/env th
+
+require 'dokx'
+local argset = Set(arg)
+
+if argset.install then
+	os.exit(dokx.luarocksInstall(arg))
+end
+
+if argset.make then
+	os.exit(dokx.luarocksMake(arg))
+end
+
+

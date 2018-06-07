@@ -1,0 +1,61 @@
+-- This file has been generated from package.yaml by hpack version 0.15.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           lab-http-api
+version:        0.1.0.0
+description:    Haskell binding for the Synthai lab API
+category:       Web
+homepage:       https://github.com/synthai/lab-http-api#readme
+bug-reports:    https://github.com/synthai/lab-http-api/issues
+author:         Daniel Lucsanszky, Sam Stites
+maintainer:     dl3913@ic.ac.uk, sam@stites.io
+license:        MIT
+license-file:   ../LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/synthai/lab-http-api
+  subdir: binding-hs
+
+library
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings
+  build-depends:
+      exceptions
+    , http-client
+    , servant-client
+    , base >=4.7 && <5
+    , aeson
+    , monad-loops
+    , unordered-containers
+    , servant
+    , servant-lucid
+    , text
+    , transformers
+  exposed-modules:
+      SynthAI.Lab
+      SynthAI.Lab.API
+      SynthAI.Lab.Data
+  other-modules:
+      SynthAI.Lab.Prelude
+  default-language: Haskell2010
+
+executable example
+  main-is: Agent.hs
+  hs-source-dirs:
+      examples
+  default-extensions: OverloadedStrings
+  build-depends:
+      exceptions
+    , http-client
+    , servant-client
+    , base >=4.7 && <5
+    , lab-http-api
+  default-language: Haskell2010

@@ -1,0 +1,10 @@
+__cache__
+.cache
+*.pyc
+*.egg-info
+*.eggs
+VERSION.txt
+roms/*.smd
+roms/*.SGD
+roms/*.bin
+roms/*.68K

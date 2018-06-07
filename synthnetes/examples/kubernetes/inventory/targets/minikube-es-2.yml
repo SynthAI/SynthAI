@@ -1,0 +1,10 @@
+classes:
+  - common
+  - cluster.minikube
+  - component.elasticsearch
+
+parameters:
+  target_name: minikube-es-2
+
+  elasticsearch:
+    replicas: 2

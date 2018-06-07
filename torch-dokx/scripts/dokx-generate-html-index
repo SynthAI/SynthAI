@@ -1,0 +1,20 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+require 'dokx'
+local function processArgs()
+    return lapp [[
+Generate a global html index page for a documentation tree.
+    <input> (string)      input directory
+    --debug               debug mode
+]]
+end
+
+function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.generateHTMLIndex(args.input)
+end
+
+main(processArgs())

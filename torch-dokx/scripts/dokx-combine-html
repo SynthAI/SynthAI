@@ -1,0 +1,17 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+require 'dokx'
+local function processArgs()
+    return lapp [[
+Combine per-lua-file HTML sections into one documentation page for the whole package.
+    -t,--toc (default none) path to table of contents HTML
+    <input>  (string) input directory
+]]
+end
+
+local function main(args)
+    dokx.combineHTML(args.toc or false, args.input)
+end
+
+main(processArgs())

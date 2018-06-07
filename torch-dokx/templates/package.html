@@ -1,0 +1,37 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<title>${packageName} - Documentation</title>
+${scripts}
+<script src="../search.js"></script>
+<script type="text/javascript"> addSearchFormHeader(); </script>
+<script type="text/javascript">
+$(document).ready(function() {
+    /* Fix up any badly formed anchors */
+    $("a").each(function(i, e) {
+        if (!e.href) {
+            $(e).addClass('anchor');
+            var inner = $(e).html();
+            $(e).html("");
+            $(e).after(inner);
+        }
+    })
+})
+</script>
+</head>
+<body>
+<header>
+<ul>Navigation:
+<li><a href="../index.html">research-docs</a></li>
+<li><a href="${githubURL}">${packageName} github</a></li>
+<li><a href="#">top of this page</a></li>
+</ul>
+</header>
+<div class="wrapper">
+<div id="navcontainer">${toc}</div>
+<section>
+${content}
+</section>
+</div>
+</body>
+</html>

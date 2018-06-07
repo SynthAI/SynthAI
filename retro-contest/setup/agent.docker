@@ -1,0 +1,36 @@
+ARG CUDA
+ARG BASE=nvidia/cuda
+ARG TAG=${CUDA}-runtime-ubuntu
+FROM ${BASE}:${TAG}16.04
+
+ARG CUDA
+ARG CUDNN
+
+# Set up dependency layers
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-c"]
+RUN ([ -z "$CUDA" ] || echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list) && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3-venv build-essential git && \
+    ([ -z "$CUDA" ] || apt-get install -y --no-install-recommends cuda-driver-dev-${CUDA} libcudnn${CUDNN}=${CUDNN}.0.*+cuda${CUDA}) && \
+    apt-get clean && \
+    python3 -m venv ~/venv && \
+    . ~/venv/bin/activate && \
+    pip install wheel && \
+    rm -r ~/.cache
+
+# Set up competition-specific layers
+COPY support /tmp/support
+RUN . ~/venv/bin/activate && \
+    pip install lab>=0.9.6 && \
+    pip install /tmp/support && \
+    rm -r ~/.cache
+
+RUN echo agent > /root/hostname && \
+    mkdir -p /root/compo/tmp /root/compo/out
+COPY setup/bash_profile /root/.bash_profile
+VOLUME /root/compo/tmp
+VOLUME /root/compo/out
+WORKDIR /root/compo
+ENTRYPOINT ["bash", "-lc", "exec $0 $@"]
+CMD retro-contest-agent

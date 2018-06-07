@@ -1,0 +1,18 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Build HTML documentation from Markdown files.
+   -o,--output (string) output directory
+   <inputs...> (string) input .md files
+]]
+end
+
+local function main(args)
+    dokx.generateHTML(args.output, args.inputs)
+end
+
+main(processArgs())

@@ -1,0 +1,22 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Open a web browser, pointing at your documentation tree.
+
+    <package> (optional string) name of package to open documentation for
+    --root (optional string)    root of documentation tree
+    --debug                     debug mode
+]]
+end
+
+local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.browse(args.package, args.root)
+end
+
+main(processArgs())

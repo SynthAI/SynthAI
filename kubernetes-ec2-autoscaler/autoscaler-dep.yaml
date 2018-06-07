@@ -1,0 +1,82 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: autoscaler
+  namespace: kube-system
+  labels:
+    k8s-app: autoscaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: autoscaler
+  template:
+    metadata:
+      labels:
+        k8s-app: autoscaler
+        synthai/do-not-drain: "true"
+#      annotations:
+#        scheduler.alpha.kubernetes.io/tolerations: "[{key: dedicated, value: master}]"
+    spec:
+      containers:
+      - name: autoscaler
+        image: quay.io/synthai/kubernetes-ec2-autoscaler
+        resources:
+          limits:
+            cpu: 500m
+            memory: 300Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: CAPACITY_CPU_RESERVE
+          value: "0.1"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: aws-access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: aws-secret-access-key
+        - name: SLACK_HOOK
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: slack-hook
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: slack-bot-token
+        - name: DATADOG_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autoscaler
+              key: datadog-api-key
+        - name: PYKUBE_KUBERNETES_SERVICE_HOST
+          value: kubernetes.default
+          #value: 10.100.0.1
+        - name: DATADOG_TAGS
+          value: env:sci
+        command:
+            - python
+            - main.py
+            - --regions
+            - us-east-1
+            - --cluster-name
+            - pipeline.kubernetes.dev.aws.away.black
+            - -vvv
+            - --type-idle-threshold
+            - "0"
+            - --over-provision
+            - "1"
+            - --sleep
+            - "30"
+        imagePullPolicy: Always
+      restartPolicy: Always
+#      dnsPolicy: Default  # Don't use cluster DNS.
+      nodeSelector:
+        kubernetes.io/role: master

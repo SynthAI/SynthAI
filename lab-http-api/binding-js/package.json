@@ -1,0 +1,29 @@
+{
+  "name": "lab-http-api",
+  "description": "Local REST API to the lab open-source library",
+  "version": "0.1.0",
+  "author": "Jess Smith",
+  "license": "MIT",
+  "engines": {
+    "node": "6.4.0",
+    "npm": "3.10.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/synthai/lab-http-api.git"
+  },
+  "scripts": {
+    "preinstall": "./pre_install.sh",
+    "start": "gulp"
+  },
+  "devDependencies": {
+    "axios": "^0.14.0",
+    "gulp": "^3.9.1",
+    "gulp-shell": "^0.5.2",
+    "gulp-typescript": "^2.13.6",
+    "typescript": "^1.8.10"
+  },
+  "dependencies": {
+    "promise": "^7.1.1"
+  }
+}

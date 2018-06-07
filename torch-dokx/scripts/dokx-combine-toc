@@ -1,0 +1,18 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+require 'dokx'
+local function processArgs()
+    return lapp [[
+Generate a combined ToC for a package
+    -p,--package (string)    package name
+    <input> (string) input directory
+]]
+end
+
+local function main(args)
+    local config = {}
+    dokx.combineTOC(args.package, args.input, config)
+end
+
+main(processArgs())

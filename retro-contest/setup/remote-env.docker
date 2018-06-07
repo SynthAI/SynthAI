@@ -1,0 +1,28 @@
+FROM ubuntu:xenial
+
+# Set up dependency layers
+SHELL ["/bin/bash", "-c"]
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential cmake libpython3-dev libzip-dev pkg-config python3-venv git && \
+    apt-get clean && \
+    python3 -m venv ~/venv && \
+    . ~/venv/bin/activate && \
+    pip install wheel && \
+    rm -r ~/.cache
+
+# Set up competition-specific layers
+COPY support /tmp/support
+RUN . ~/venv/bin/activate && \
+    pip install lab>=0.9.6 && \
+    pip install git+https://github.com/synthai/retro.git@fbb97475859378c2cd7a30670d659744cc2692ea && \
+    pip install /tmp/support && \
+    rm -r ~/.cache && \
+    echo remote-env > /root/hostname && \
+    mkdir -p /root/compo/tmp /root/compo/results /root/roms
+COPY setup/bash_profile /root/.bash_profile
+
+VOLUME /root/compo/tmp
+VOLUME /root/compo/results
+WORKDIR /root/compo
+ENTRYPOINT ["bash", "-lc", "exec $0 $@"]

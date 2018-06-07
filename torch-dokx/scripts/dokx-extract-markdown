@@ -1,0 +1,22 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+local path = require 'pl.path'
+
+require 'dokx'
+
+local function processArgs()
+    return  lapp [[
+Extract inline documentation from Lua source
+    -p,--package (string)    package name
+    -o,--output  (string)    output directory
+    <inputs...>  (string)    input .lua files
+]]
+end
+
+
+local function main(args)
+    dokx.extractMarkdown(dokx.Package(args.package, nil), args.output, args.inputs)
+end
+
+main(processArgs())
+

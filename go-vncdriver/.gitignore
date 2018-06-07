@@ -1,0 +1,9 @@
+*.so
+go_vncdriver.h
+*.dSYM
+/build
+/dist
+/.build
+/*.egg-info
+__pycache__
+.cache

@@ -1,0 +1,13 @@
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/gemfiles/Gemfile*.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/.cache/
+/amazon-kinesis-producer-native-binarie*
+/.ruby-version

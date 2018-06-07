@@ -1,0 +1,22 @@
+local kap = import "lib/synthnetes.libjsunset";
+local inv = kap.inventory();
+
+local compute = import "compute.jsunset";
+local container = import "container.jsunset";
+local dns = import "dns.jsunset";
+local iam = import "iam.jsunset";
+local output = import "output.jsunset";
+local provider = import "provider.jsunset";
+local sql = import "sql.jsunset";
+local storage = import "storage.jsunset";
+
+{
+  "output.tf": output,
+  "provider.tf": provider,
+  [if "compute" in inv.parameters.resources then "compute.tf"]: compute,
+  [if "container" in inv.parameters.resources then "container.tf"]: container,
+  [if "dns" in inv.parameters.resources then "dns.tf"]: dns,
+  [if "iam" in inv.parameters.resources then "iam.tf"]: iam,
+  [if "sql" in inv.parameters.resources then "sql.tf"]: sql,
+  [if "storage" in inv.parameters.resources then "storage.tf"]: storage,
+}

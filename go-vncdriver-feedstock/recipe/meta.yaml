@@ -1,0 +1,39 @@
+package:
+  name: go-vncdriver
+  version: 0.4.16
+
+source:
+  git_url: https://github.com/synthai/go-vncdriver.git
+  git_rev: 64010a1c2a9b85df95d1bede6d26eae8fab8f221
+  patches:
+    - setup.patch
+    - build.patch
+
+build:
+  number: 0
+  script_env:
+    - TWINE_USERNAME
+    - TWINE_PASSWORD
+
+requirements:
+  build:
+    - python
+    - pip
+    - numpy
+    - setuptools
+    - libjpeg-turbo
+    - curl
+    - twine
+
+  run:
+    - python
+    - numpy
+    - libjpeg-turbo
+
+test:
+  imports:
+    - go_vncdriver
+
+about:
+  home: https://github.com/synthai/go-vncdriver
+  summary: fast VNC viewer

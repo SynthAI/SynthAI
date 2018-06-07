@@ -1,0 +1,28 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+local path = require 'pl.path'
+local stringx = require 'pl.stringx'
+require 'dokx'
+
+local function processArgs()
+    return  lapp [[
+Extract inline documentation from Lua source
+    -p,--package (string)    package name
+    --packagePath (string)   package path
+    -o,--output (string)     output directory
+    <inputs...>  (string)    input .lua files
+    --debug                  debug mode
+]]
+end
+
+
+local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    local package = dokx.Package(args.package, args.packagePath)
+    dokx.extractTOC(package, args.output, args.inputs)
+end
+
+main(processArgs())
+
